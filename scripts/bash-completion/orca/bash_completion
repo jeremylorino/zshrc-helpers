@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+
+echo "Loading AutoFi Orca bash completion"
+
+if ! command -v orca &> /dev/null; then
+    echo "Orca not found"
+    return
+fi
+
+__orca_generate_completion() {
+    declare current_word
+    current_word="${COMP_WORDS[COMP_CWORD]}"
+    # shellcheck disable=SC2207
+    COMPREPLY=($(compgen -W "$1" -- "${current_word}"))
+    return 0
+}
+
+__orca_commands() {
+    declare current_word
+    declare command
+
+    current_word="${COMP_WORDS[COMP_CWORD]}"
+
+    COMMANDS='
+        dashboard
+        debug
+        dev
+        exec
+        fix
+        git
+        help
+        list ps
+        logs
+        npm
+        running
+        stacks
+        start restart up
+        stop down'
+
+    # echo "comp words: ${#COMP_WORDS[@]}"
+    if [ ${#COMP_WORDS[@]} -gt 2 ]; then
+
+        command="${COMP_WORDS[COMP_CWORD - 2]}"
+        case "${command}" in
+            start | up | restart) return 0 ;;
+        esac
+        
+        return 0
+
+    else
+
+        case "${current_word}" in
+            # -*) __orca_options ;;
+            *) __orca_generate_completion "${COMMANDS}" ;;
+        esac
+
+    fi
+}
+
+__orca_start() {
+    declare current_word
+    declare command
+
+    current_word="${COMP_WORDS[COMP_CWORD]}"
+
+    COMMANDS='
+        cobra
+        credit-app
+        deal-service
+        falcon
+        hippo
+        lioness
+        loanapp
+        loanapp-api
+        local
+        octopus
+        panda
+        penguin
+        portal
+        products
+        scorpion
+        smartcow
+        vendor-sim
+        vulture
+        wasp
+        wombat'
+
+    case "${current_word}" in
+        # -*) __orca_options ;;
+        *) __orca_generate_completion "${COMMANDS}" ;;
+    esac
+}
+
+# ORCA_OPTS="$(orca --help | grep -oE '^\s+[a-z-]+' | sed 's/^\s*//')"
+
+__orca() {
+    local cur prev
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    case "${prev}" in
+        start | up | restart | stop | down | logs)
+            __orca_start
+            ;;
+        *)
+            __orca_commands
+            ;;
+    esac
+
+    return 0
+}
+
+complete -o default -F __orca orca
